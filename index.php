@@ -9,23 +9,13 @@ require_once 'libs/easybitcoin.php';
 $bitcoinrpc = new Bitcoin($config["rpc_user"], $config["rpc_password"], $config["rpc_host"], $config["rpc_port"]);
 
 //init url path prefix
-if ($config["url_rewrite"]) {
-    $name = isset($_GET['name']) ? $_GET['name'] : "";
-    list($url_param_get_action, $url_param_get_value) = explode("/", $name);
-    $url_path["height"] = $config["root_path"] . $config["explorer_path"] . 'height/';
-    $url_path["blockhash"] = $config["root_path"] . $config["explorer_path"] . 'blockhash/';
-    $url_path["tx"] = $config["root_path"] . $config["explorer_path"] . 'tx/';
-    $url_path["block"] = $config["root_path"] . $config["explorer_path"] . 'block/';
-    $url_path["search"] = $config["root_path"] . $config["explorer_path"] . 'search/';
-} else {
-    $url_param_get_action = isset($_GET['action']) ? $_GET['action'] : "";
-    $url_param_get_value = isset($_GET['v']) ? $_GET['v'] : "";
-    $url_path["height"] = $config["root_path"] . $config["explorer_path"] . '?action=height&v=';
-    $url_path["blockhash"] = $config["root_path"] . $config["explorer_path"] . '?action=blockhash&v=';
-    $url_path["tx"] = $config["root_path"] . $config["explorer_path"] . '?action=tx&v=';
-    $url_path["block"] = $config["root_path"] . $config["explorer_path"] . '?action=block&v=';
-    $url_path["search"] = $config["root_path"] . $config["explorer_path"] . '?action=search&v=';
-}
+$url_param_get_action = isset($_GET['action']) ? $_GET['action'] : "";
+$url_param_get_value = isset($_GET['v']) ? $_GET['v'] : "";
+$url_path["height"] = $config["root_path"] . $config["explorer_path"] . '?action=height&v=';
+$url_path["blockhash"] = $config["root_path"] . $config["explorer_path"] . '?action=blockhash&v=';
+$url_path["tx"] = $config["root_path"] . $config["explorer_path"] . '?action=tx&v=';
+$url_path["block"] = $config["root_path"] . $config["explorer_path"] . '?action=block&v=';
+$url_path["search"] = $config["root_path"] . $config["explorer_path"] . '?action=search&v=';
 
 switch ($url_param_get_action) {
     case "":
@@ -75,7 +65,6 @@ switch ($url_param_get_action) {
         $output["get_nextdiff_url"] = $config["root_path"] . $config["explorer_path"] . "ajax.php";
         $output["nextdiff_display"] = "";
     case "height":
-        //baseinfo
         $info = $bitcoinrpc->getinfo();
         if ($bitcoinrpc->status !== 200 && $bitcoinrpc->error !== '') {
             exit($bitcoinrpc->error);
@@ -107,7 +96,6 @@ switch ($url_param_get_action) {
         $output['nextdiff_blocks'] = $nTarget - ($info['blocks'] - $config["retarget_diff_since"]) % $nTarget;
         $output['nextdiff_timeline'] = gmdate($config["date_format"], time() + $output['nextdiff_blocks'] * $config["nTargetSpacing"]);
 
-        //blocklist
         $height = (int) ($url_param_get_value ? $url_param_get_value : $info['blocks']);
         if ($height > $info['blocks']) {
             send404();
@@ -115,7 +103,7 @@ switch ($url_param_get_action) {
             send404();
         }
 
-        $i = $height; //must convert to number, if string will not get block hash
+        $i = $height;
         $n = $config["blocks_per_page"];
         while ($i >= 0 && $n--) {
             $block_detail = array();
@@ -124,7 +112,6 @@ switch ($url_param_get_action) {
             $block_detail['hash'] = $block['hash'];
             $block_detail['height'] = $block['height'];
             $block_detail['difficulty'] = $block['difficulty'];
-            // $block_detail['time'] = $block['time'];
             $block_detail['date'] = gmdate($config["date_format"], $block['time']);
             $block_detail['size'] = short_number($block['size'], 1024, 3, " ") . "B";
 
@@ -148,7 +135,6 @@ switch ($url_param_get_action) {
             $output['blocks'][] = $block_detail;
             $i--;
         }
-        // echo json_encode($output);
 
         if (count($output['blocks']) > 0) {
             foreach ($output['blocks'] as $value) {
@@ -237,8 +223,6 @@ switch ($url_param_get_action) {
         }
 
         $rawtransaction = $bitcoinrpc->getrawtransaction($tx, 1);
-        // echo json_encode($bitcoinrpc);
-        // exit;
         if ($bitcoinrpc->status !== 200 && $bitcoinrpc->response['error']['code'] == -5) {
             send404();
         }
@@ -288,9 +272,6 @@ switch ($url_param_get_action) {
         $output["title"] = "Transaction Detail " . $tx . " - ";
         $output["description"] = "This transaction's txid is " . $rawtransaction["txid"] . ". It was made transaction at " . gmdate($config["date_format"], $rawtransaction["time"]) . " UTC. And this transaction belongs to the block hash " . $rawtransaction["blockhash"] . ".";
 
-        // echo json_encode($output);
-        // exit;
-
         exit(get_html("transaction-body", $output));
         break;
     case "search":
@@ -312,71 +293,6 @@ switch ($url_param_get_action) {
         break;
     default:
         send404();
-        break;
-    case "chaintips":
-        $getchaintips = $bitcoinrpc->getchaintips();
-        if ($bitcoinrpc->status !== 200 && $bitcoinrpc->error !== '') {
-            exit($bitcoinrpc->error);
-        }
-
-        for ($i = 0; $i < 100; $i++) {
-            $value = $getchaintips[$i];
-            $block_detail = array();
-            $block_detail['height'] = $value['height'];
-            $block_detail['hash'] = $value['hash'];
-            $block_detail['branchlen'] = $value['branchlen'];
-            $block_detail['status'] = $value['status'];
-            $block = $bitcoinrpc->getblock($value['hash']);
-            // $block_detail['hash'] = $block['hash'];
-            // $block_detail['height'] = $block['height'];
-            $block_detail['difficulty'] = $block['difficulty'];
-            // $block_detail['time'] = $block['time'];
-            $block_detail['date'] = gmdate($config["date_format"], $block['time']);
-            $block_detail['size'] = short_number($block['size'], 1024, 3, " ") . "B";
-            $block_detail['tx_count'] = count($block['tx']);
-
-            // $tx_count = 0;
-            // $value_out = 0;
-            // if (count($block['tx']) > 0) {
-            //     foreach ($block['tx'] as $tx) {
-            //         $tx_count++;
-            //         $rawtransaction = $bitcoinrpc->getrawtransaction($tx, 1);
-            //         if ($rawtransaction === false) {
-            //             continue;
-            //         }
-
-            //         foreach ($rawtransaction['vout'] as $vout) {
-            //             $value_out += $vout['value'];
-            //         }
-            //     }
-            // }
-            // // $block_detail['tx_count'] = $tx_count;
-            // $block_detail['value_out'] = $value_out;
-
-            $output['blocks'][] = $block_detail;
-        }
-        // echo json_encode($output);
-
-        if (count($output['blocks']) > 0) {
-            $n = 1;
-            $lastheight = 0;
-            foreach ($output['blocks'] as $value) {
-                if ($value['height'] == $lastheight) {
-                    $n++;
-                } else {
-                    $n = 1;
-                    $lastheight = $value['height'];
-                }
-                // $output['block_list_tbody'] .= "<tr><td><a class=\"text-info\" href=\"" . $url_path["block"] . $value["height"] . "\">" . $value["height"] . "</a></td><td><a class=\"text-info\" href=\"" . $url_path["blockhash"] . $value["hash"] . "\">" . $value["hash"] . "</a></td><td>" . $value["difficulty"] . "</td><td>" . $value["date"] . "</td><td>" . $value["tx_count"] . "</td><td>" . $value["value_out"] . "</td><td>" . $value["size"] . "</td></tr>";
-                // $output['block_list_tbody'] .= "<tr><td>" . $n . "</td><td><a class=\"text-info\" href=\"" . $url_path["block"] . $value["height"] . "\">" . $value["height"] . "</a></td><td><a class=\"text-info\" href=\"" . $url_path["blockhash"] . $value["hash"] . "\">" . $value["hash"] . "</a></td><td>" . $value["branchlen"] . "</td><td>" . $value["status"] . "</td><td>" . $value["difficulty"] . "</td><td>" . $value["date"] . "</td><td>" . $value["tx_count"] . "</td><td>" . $value["value_out"] . "</td><td>" . $value["size"] . "</td></tr>";
-                $output['block_list_tbody'] .= "<tr><td>" . $n . "</td><td><a class=\"text-info\" href=\"" . $url_path["block"] . $value["height"] . "\">" . $value["height"] . "</a></td><td><a class=\"text-info\" href=\"" . $url_path["blockhash"] . $value["hash"] . "\">" . $value["hash"] . "</a></td><td>" . $value["branchlen"] . "</td><td>" . $value["status"] . "</td><td>" . $value["difficulty"] . "</td><td>" . $value["date"] . "</td><td>" . $value["tx_count"] . "</td><td>" . $value["size"] . "</td></tr>";
-            }
-        }
-
-        $output["title"] = "Chaintips " . $height . " - ";
-        $output["description"] = $config["explorer_name"] . " block list page. This page shows chaintips.";
-
-        exit(get_html("chaintips-body", $output));
         break;
 }
 
@@ -427,16 +343,13 @@ function get_output_from_block($block)
         }
     }
 
-    // echo json_encode($output);
-    // exit;
-
     if (count($output['transactions']) > 0) {
         foreach ($output['transactions'] as $value) {
             $output['block_detail_tbody'] .= '<tr><th class="text-end">tx</th><td class="text-start">';
             $output['block_detail_tbody'] .= '<a class="text-info" href="' . $url_path["tx"] . $value["tx"] . '">' . $value["tx"] . '</a>';
             $output['block_detail_tbody'] .= '</td></tr>';
             $output['block_detail_tbody'] .= '<tr><th class="text-end"></th><td class="text-start">';
-            $output['block_detail_tbody'] .= '<table class="table table-borderless text-white-50 table-sm w-75"><tbody>';
+            $output['block_detail_tbody'] .= '<table class="table"><tbody>';
             if ($value["coinbase"]) {
                 $reward = " <span class=\"text-muted\">*</span>";
             } else {
@@ -462,8 +375,6 @@ function get_output_from_block($block)
 function send404()
 {
     global $config;
-    // header('HTTP/1.1 404 Not Found');
-    // header("status: 404 Not Found");
     http_response_code(404);
     $output["title"] = "Oops! 404 Not Found - ";
     $output["description"] = "Oops! 404 Not Found";

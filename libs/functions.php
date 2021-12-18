@@ -4,7 +4,7 @@ if (!defined('IN_SCRIPT')) {die('Invalid attempt!');}
 function mkpath($path)
 {
     $dirs = array();
-    $path = preg_replace('/(\/){2,}|(\\\){1,}/', '/', $path); //only forward-slash
+    $path = preg_replace('/(\/){2,}|(\\\){1,}/', '/', $path);
     $dirs = explode("/", $path);
     $path = "";
     foreach ($dirs as $element) {
@@ -13,7 +13,6 @@ function mkpath($path)
             if (!mkdir($path)) {echo "something was wrong at : " . $path;return 0;}
         }
     }
-    //echo("<B>".$path."</B> successfully created");
 }
 
 function loadfile($file, $method = 'rb')
@@ -86,7 +85,6 @@ function clear_html($string)
     return preg_replace($pattern, $replace, $string);
 }
 
-//new best
 function clean_html($string)
 {
     $pattern = array(
@@ -145,7 +143,7 @@ function utf8strcut($string, $length, $endfix, $charset)
 }
 
 /**
- * Fetch the contents of a remote fle.
+ * Fetch the contents of a remote file.
  *
  * @param string The URL of the remote file
  * @return string The remote file contents.
@@ -254,7 +252,6 @@ function page($p, $total, $itemsperpage, $pagelimit, $pagenum, $sitelisturl, $si
 
     }
     if ($imax > $pagelimit) {
-        //$imin = $imin - 1;
         $imax = $pagelimit;
         if ($imax - $imin < $pagenum) {
             $imin = $imax - $pagenum + 1;
@@ -279,7 +276,6 @@ function page($p, $total, $itemsperpage, $pagelimit, $pagenum, $sitelisturl, $si
                 $listlink[] = '<li><a href="' . str_replace("{page}", $i, $sitelisturl) . '">' . $i . '</a></li>';
             }
         }
-        //echo $i;
     }
     if ($p < $pagelimit - floor($pagenum / 2)) {
         $listlink[] = '<li><a href="' . str_replace("{page}", ($p + 1), $sitelisturl) . '">next</a></li>';
@@ -290,7 +286,7 @@ function page($p, $total, $itemsperpage, $pagelimit, $pagenum, $sitelisturl, $si
     } else {
         return implode("", $listlink);
     }
-} //End page()
+}
 
 function shortenNumber($n, $precision = 1)
 {
@@ -307,7 +303,7 @@ function shortenNumber($n, $precision = 1)
     return $out;
 }
 
-//Byte KB、MB、GB、TB
+//Byte, KB, MB, GB, TB
 function getFilesize($num)
 {
     $p = 0;

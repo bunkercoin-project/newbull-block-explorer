@@ -1,7 +1,36 @@
 .text-start {
-  text-align: left !important;
+    text-align: left !important;
 }
 
 .text-end {
-  text-align: right !important;
+    text-align: right !important;
+}
+
+body{
+    background-color: #212121;
+    color: #77c277;
+    font-family: "Comic Sans MS";
+}
+
+/* Improve the links */
+a:link,
+a:visited {
+    color: #77C277 !important;
+    text-decoration: underline !important;
+}
+
+a:hover,
+a:active {
+    color: #F0F0F0 !important;
+    text-decoration: underline;
+}
+
+.older_button:hover {
+    background-color: #77c277 !important;
+    color: #F0F0F0 !important;
+}
+
+.newer_button:hover {
+    background-color: #77c277 !important;
+    color: #F0F0F0 !important;
 }

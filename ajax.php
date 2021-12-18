@@ -6,23 +6,11 @@ require_once 'libs/functions.php';
 require_once 'libs/easybitcoin.php';
 
 //init url path prefix
-if ($config["url_rewrite"]) {
-    // $name = isset($_GET['name']) ? $_GET['name'] : "";
-    // list($url_param_get_action, $url_param_get_value) = explode("/", $name);
-    $url_path["height"] = $config["explorer_path"] . 'height/';
-    $url_path["blockhash"] = $config["explorer_path"] . 'blockhash/';
-    $url_path["tx"] = $config["explorer_path"] . 'tx/';
-    $url_path["block"] = $config["explorer_path"] . 'block/';
-    $url_path["search"] = $config["explorer_path"] . 'search/';
-} else {
-    // $url_param_get_action = isset($_GET['action']) ? $_GET['action'] : "";
-    // $url_param_get_value = isset($_GET['v']) ? $_GET['v'] : "";
-    $url_path["height"] = $config["explorer_path"] . '?action=height&v=';
-    $url_path["blockhash"] = $config["explorer_path"] . '?action=blockhash&v=';
-    $url_path["tx"] = $config["explorer_path"] . '?action=tx&v=';
-    $url_path["block"] = $config["explorer_path"] . '?action=block&v=';
-    $url_path["search"] = $config["explorer_path"] . '?action=search&v=';
-}
+$url_path["height"] = $config["explorer_path"] . '?action=height&v=';
+$url_path["blockhash"] = $config["explorer_path"] . '?action=blockhash&v=';
+$url_path["tx"] = $config["explorer_path"] . '?action=tx&v=';
+$url_path["block"] = $config["explorer_path"] . '?action=block&v=';
+$url_path["search"] = $config["explorer_path"] . '?action=search&v=';
 
 $bitcoinrpc = new Bitcoin($config["rpc_user"], $config["rpc_password"], $config["rpc_host"], $config["rpc_port"]);
 
@@ -86,11 +74,6 @@ switch ($action) {
         $response = array();
         $response['s'] = 1;
         $response['d'] = $bnNew;
-        // $response['n'] = $nActualTimespan;
-        // $response['l'] = $last_block;
-        // $response['f'] = $first_block;
-        // $response['lt'] = gmdate($config["date_format"], $last_block["time"]);
-        // $response['ft'] = gmdate($config["date_format"], $first_block["time"]);
         exit(json_encode($response));
         break;
     case "block":
@@ -282,9 +265,6 @@ function get_output_from_block($block)
         }
     }
 
-    // echo json_encode($output);
-    // exit;
-
     if (count($output['transactions']) > 0) {
         foreach ($output['transactions'] as $value) {
             $output['block_detail_tbody'] .= '<tr><th class="text-end">tx</th><td class="text-start">';
@@ -317,8 +297,6 @@ function get_output_from_block($block)
 function send404()
 {
     global $config;
-    // header('HTTP/1.1 404 Not Found');
-    // header("status: 404 Not Found");
     http_response_code(404);
     $output["title"] = "Oops! 404 Not Found - ";
     $output["description"] = "Oops! 404 Not Found";
