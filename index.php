@@ -17,6 +17,10 @@ $url_path["tx"] = $config["root_path"] . $config["explorer_path"] . '?action=tx&
 $url_path["block"] = $config["root_path"] . $config["explorer_path"] . '?action=block&v=';
 $url_path["search"] = $config["root_path"] . $config["explorer_path"] . '?action=search&v=';
 
+$url_param_get_verify_address = isset($_GET['verify_address']) ? $_GET['verify_address'] : "";
+$url_param_get_verify_signature = isset($_GET['verify_signature']) ? str_replace(" ", "+", $_GET['verify_signature']) : "";
+$url_param_get_verify_message = isset($_GET['verify_message']) ? $_GET['verify_message'] : "";
+
 switch ($url_param_get_action) {
     case "":
         $getrawmempool = $bitcoinrpc->getrawmempool();
@@ -290,6 +294,33 @@ switch ($url_param_get_action) {
         $output["description"] = "Search result for " . $search;
 
         exit(get_html("search-body", $output));
+        break;
+    case "verify":
+        header("Content-Type: application/json");
+        if ($url_param_get_verify_address == "" || $url_param_get_verify_signature == "" || $url_param_get_verify_message == "") { // Check if all the required values were specified
+            $result->success = false;
+            $result->error = "Please specify an address, signature and message.";
+            echo json_encode($result);
+        } else if (!preg_match('/^[B][a-zA-Z0-9]{33}$/', $url_param_get_verify_address)) { // Verify if the address is valid
+            $result->success = false;
+            $result->error = "Please specify a valid address.";
+            echo json_encode($result);
+        } else if (!preg_match('/^[a-zA-Z0-9+=\/]{88}$/', $url_param_get_verify_signature)) { // Verify is the signature is a valid base64 string
+            $result->success = false;
+            $result->error = "Please specify a valid signature.";
+            echo json_encode($result);
+        } else { // All the values are valid
+            $verified = $bitcoinrpc->verifymessage($url_param_get_verify_address, $url_param_get_verify_signature, $url_param_get_verify_message);
+            if ($bitcoinrpc->status !== 200 && $bitcoinrpc->error !== '') {
+                $result->success = false;
+                $result->error = "Failed to connect to the Bunkercoin RPC. Node not reachable, or user/pass incorrect.";
+                echo json_encode($result);
+            } else {
+                $result->success = true;
+                $result->verified = $bitcoinrpc->response["result"];
+                echo json_encode($result);
+            }
+        }
         break;
     default:
         send404();
