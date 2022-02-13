@@ -297,6 +297,7 @@ switch ($url_param_get_action) {
         break;
     case "verify":
         header("Content-Type: application/json");
+        header("Access-Control-Allow-Origin: *");
         if ($url_param_get_verify_address == "" || $url_param_get_verify_signature == "" || $url_param_get_verify_message == "") { // Check if all the required values were specified
             $result->success = false;
             $result->error = "Please specify an address, signature and message.";
